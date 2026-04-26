@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-    // Header agar bisa dipanggil dari AppCreator24
+    // Header CORS agar bisa diakses dari AppCreator24
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,7 +8,7 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
-    // Ambil pesan dari user
+    // Mengambil pesan dari user dengan proteksi parsing
     let message = "";
     if (req.body && req.body.message) {
         message = req.body.message;
@@ -23,8 +23,8 @@ export default async function handler(req, res) {
         return res.status(200).json({ reply: "Ketik sesuatu dong bro, jangan dikosongin!" });
     }
 
-    // API Key Groq Lu
-    const apiKey = "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"; 
+    // GANTI DENGAN API KEY GROQ TERBARU LU
+    const apiKey = "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"; 
 
     try {
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -38,11 +38,11 @@ export default async function handler(req, res) {
                 messages: [
                     { 
                         role: "system", 
-                        content: "Kamu adalah Ankerweb AI, asisten gaul milik Arka Muhammad. Jawab singkat, pakai bahasa Indonesia santai (gue/lu), dan jangan kaku." 
+                        content: "Kamu adalah Ankerweb AI, asisten gaul milik Arka Muhammad. Jawab singkat, padat, pakai bahasa Indonesia santai (gue/lu), dan jangan kaku. Fokus bantu soal Donghua atau script." 
                     },
                     { role: "user", content: message }
                 ],
-                temperature: 0.7
+                temperature: 0.8
             })
         });
 
@@ -52,9 +52,11 @@ export default async function handler(req, res) {
             const reply = data.choices.message.content;
             res.status(200).json({ reply });
         } else {
-            res.status(200).json({ reply: "Duh, Groq lagi limit atau ada yang salah di kuncinya bro!" });
+            // Memberikan pesan error yang lebih jelas jika gagal
+            const errorMsg = data.error ? data.error.message : "API Key bermasalah atau limit.";
+            res.status(200).json({ reply: "Duh, ada masalah: " + errorMsg });
         }
     } catch (error) {
-        res.status(200).json({ reply: "Koneksi ke server Groq gagal, coba lagi!" });
+        res.status(200).json({ reply: "Koneksi ke server AI gagal, coba lagi nanti!" });
     }
 }
