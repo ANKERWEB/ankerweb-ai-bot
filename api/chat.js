@@ -1,43 +1,60 @@
 export default async function handler(req, res) {
+    // Header agar bisa dipanggil dari AppCreator24
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
 
+    // Ambil pesan dari user
     let message = "";
     if (req.body && req.body.message) {
         message = req.body.message;
     } else if (typeof req.body === 'string') {
-        try { message = JSON.parse(req.body).message; } catch(e) { message = ""; }
+        try {
+            const parsed = JSON.parse(req.body);
+            message = parsed.message;
+        } catch(e) { message = ""; }
     }
 
-    if (!message) return res.status(200).json({ reply: "Ketik sesuatu dong bro!" });
+    if (!message) {
+        return res.status(200).json({ reply: "Ketik sesuatu dong bro, jangan dikosongin!" });
+    }
 
-    const apiKey = "AIzaSyAoj0x7s7Hh3i_IkEjKuMi7pEz7QyuBQjc"; 
-    
-    // GANTI v1beta JADI v1 DI SINI BRO
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // API Key Groq Lu
+    const apiKey = "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"; 
 
     try {
-        const response = await fetch(url, {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: "Kamu adalah Ankerweb AI asisten Arka Muhammad. Jawab gaul dan singkat.\n\nUser: " + message }] }]
+                model: "llama3-8b-8192", 
+                messages: [
+                    { 
+                        role: "system", 
+                        content: "Kamu adalah Ankerweb AI, asisten gaul milik Arka Muhammad. Jawab singkat, pakai bahasa Indonesia santai (gue/lu), dan jangan kaku." 
+                    },
+                    { role: "user", content: message }
+                ],
+                temperature: 0.7
             })
         });
 
         const data = await response.json();
         
-        if (data.candidates && data.candidates.content) {
-            const reply = data.candidates.content.parts.text;
+        if (data.choices && data.choices) {
+            const reply = data.choices.message.content;
             res.status(200).json({ reply });
         } else {
-            // Biar langsung kelihatan kalau ada error lagi dari Google
-            res.status(200).json({ reply: "Error Gemini: " + (data.error ? data.error.message : "Cek API Key!") });
+            res.status(200).json({ reply: "Duh, Groq lagi limit atau ada yang salah di kuncinya bro!" });
         }
     } catch (error) {
-        res.status(200).json({ reply: "Vercel lagi pening, coba lagi!" });
+        res.status(200).json({ reply: "Koneksi ke server Groq gagal, coba lagi!" });
     }
 }
