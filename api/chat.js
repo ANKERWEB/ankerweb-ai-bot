@@ -1,29 +1,21 @@
 export default async function handler(req, res) {
-    // Header wajib biar nggak kena blokir
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+    if (req.method === 'OPTIONS') return res.status(200).end();
 
-    // Ambil pesan dari user
     let message = "";
     if (req.body && req.body.message) {
         message = req.body.message;
     } else if (typeof req.body === 'string') {
-        try {
-            const parsed = JSON.parse(req.body);
-            message = parsed.message;
-        } catch(e) { message = ""; }
+        try { message = JSON.parse(req.body).message; } catch(e) { message = ""; }
     }
 
-    if (!message) {
-        return res.status(200).json({ reply: "Pesan lu kosong bro, coba ketik sesuatu!" });
-    }
+    if (!message) return res.status(200).json({ reply: "Ketik sesuatu dong bro!" });
 
-    const apiKey = "AIzaSyDdLxPTb7S8ML0izry6vhExrN55c9f4IaA"; 
+    // PAKAI KUNCI BARU LU DISINI
+    const apiKey = "AIzaSyAoj0x7s7Hh3i_IkEjKuMi7pEz7QyuBQjc"; 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     try {
@@ -31,22 +23,21 @@ export default async function handler(req, res) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ 
-                    parts: [{ text: "Kamu adalah Ankerweb AI asisten Arka Muhammad. Jawab dengan gaya gaul dan singkat.\n\nUser: " + message }] 
-                }]
+                contents: [{ parts: [{ text: "Kamu adalah Ankerweb AI asisten Arka Muhammad. Jawab gaul dan singkat.\n\nUser: " + message }] }]
             })
         });
 
         const data = await response.json();
         
-        // JALUR YANG BENAR ADA DI SINI (Pakai indeks)
-        if (data.candidates && data.candidates && data.candidates.content) {
+        if (data.candidates && data.candidates.content) {
             const reply = data.candidates.content.parts.text;
             res.status(200).json({ reply });
         } else {
-            res.status(200).json({ reply: "API Gemini lu lagi limit atau kuncinya salah nih bro." });
+            // Biar lu tau error Google-nya apa
+            const errMsg = data.error ? data.error.message : "Kuncinya ditolak Google bro.";
+            res.status(200).json({ reply: "Error: " + errMsg });
         }
     } catch (error) {
-        res.status(200).json({ reply: "Koneksi ke Google putus, coba lagi bentar!" });
+        res.status(200).json({ reply: "Vercel lagi pening, coba lagi!" });
     }
 }
