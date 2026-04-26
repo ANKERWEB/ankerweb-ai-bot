@@ -14,9 +14,10 @@ export default async function handler(req, res) {
 
     if (!message) return res.status(200).json({ reply: "Ketik sesuatu dong bro!" });
 
-    // PAKAI KUNCI BARU LU DISINI
     const apiKey = "AIzaSyAoj0x7s7Hh3i_IkEjKuMi7pEz7QyuBQjc"; 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    
+    // GANTI v1beta JADI v1 DI SINI BRO
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     try {
         const response = await fetch(url, {
@@ -33,9 +34,8 @@ export default async function handler(req, res) {
             const reply = data.candidates.content.parts.text;
             res.status(200).json({ reply });
         } else {
-            // Biar lu tau error Google-nya apa
-            const errMsg = data.error ? data.error.message : "Kuncinya ditolak Google bro.";
-            res.status(200).json({ reply: "Error: " + errMsg });
+            // Biar langsung kelihatan kalau ada error lagi dari Google
+            res.status(200).json({ reply: "Error Gemini: " + (data.error ? data.error.message : "Cek API Key!") });
         }
     } catch (error) {
         res.status(200).json({ reply: "Vercel lagi pening, coba lagi!" });
