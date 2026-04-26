@@ -9,7 +9,6 @@ export default async function handler(req, res) {
     }
 
     // Ambil pesan dari user
-    // Di Vercel, kita perlu pastikan body-nya terbaca
     let message = "";
     if (req.body && req.body.message) {
         message = req.body.message;
@@ -40,12 +39,11 @@ export default async function handler(req, res) {
 
         const data = await response.json();
         
-        // Cek apakah ada jawaban dari Gemini
-        if (data.candidates && data.candidates.content) {
+        // JALUR YANG BENAR ADA DI SINI (Pakai indeks)
+        if (data.candidates && data.candidates && data.candidates.content) {
             const reply = data.candidates.content.parts.text;
             res.status(200).json({ reply });
         } else {
-            // Kalau API Key lu bermasalah atau limit, ini yang muncul
             res.status(200).json({ reply: "API Gemini lu lagi limit atau kuncinya salah nih bro." });
         }
     } catch (error) {
